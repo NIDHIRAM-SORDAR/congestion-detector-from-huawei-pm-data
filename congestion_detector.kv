@@ -1,0 +1,229 @@
+#: import gch kivy.utils.get_color_from_hex
+<MainContainer>:
+    id: maincontainer
+    switch: _switch
+    save_btn: _save_btn
+    message: _message
+    std_value_input: _std_value_input
+    pm_file: _pm_file
+    out_folder: _out_folder
+    pm_file_select_btn: _pm_file_select_btn.__self__
+    progress: _progress
+    cancel_btn: _cancel_btn
+    MDBoxLayout:
+        orientation: 'vertical'
+        adaptive_height: True
+        size_hint: 1, 1
+        padding: '20dp', '10dp'
+        MDGridLayout:
+            cols: 2
+            adaptive_height:True
+            padding: '20dp', '10dp'
+            spacing: "30dp"
+            MDTextFieldRound:
+                required: True
+                id: _pm_file
+                icon_left: "file-excel"
+                hint_text: "Select the PM file"
+                normal_color: app.theme_cls.accent_color
+                font_size: "20sp"
+                multiline: False
+                readonly: True
+                on_text: root.validate_file_type(self)
+            MDFillRoundFlatButton:
+                id: _pm_file_select_btn
+                icon: "file"
+                text: 'Open'
+                font_size: "15sp"
+                on_release: root.file_manager_open('file')
+        MDBoxLayout:
+            padding: '20dp', '10dp'
+            spacing: "30dp"
+            adaptive_height:True
+            MDCard:
+                orientation: "vertical"
+                padding: "8dp"
+                size_hint_y: None
+                size_hint_x: .7
+                height: dp(100)
+                pos_hint: {"top": 1}
+                radius: [15]
+                ripple_behavior: True
+                elevation: 18
+                MDLabel:
+                    text: "Enter STD Value"
+                    adaptive_height: True
+
+                MDSeparator:
+                    height: "1dp"
+                MDTextField:
+                    id: _std_value_input
+                    input_filter: 'float'
+                    required: True
+                    hint_text: "Value(press 'Enter')"
+                    mode: "rectangle"
+                    size_hint_x: None
+                    width: "200dp"
+                    padding: dp(8)
+                    pos_hint: {"center_x": .5}
+                    text: '2'
+                    helper_text_mode: "on_error"
+                    helper_text: "Enter a value between 1 to 2"
+                    on_text_validate: root.set_error_message()
+                    on_focus: root.set_error_message()
+            MDCard:
+                orientation: "vertical"
+                padding: "8dp"
+                size_hint_y: None
+                size_hint_x: .3
+                height: dp(100)
+                pos_hint: {"top": 1}
+                radius: [15]
+                ripple_behavior: True
+                elevation: 18
+                MDLabel:
+                    text: "Interactive Mode ON/OFF"
+                    adaptive_height: True
+
+                MDSeparator:
+                    height: "1dp"
+                MDSwitch:
+                    id: _switch
+                    active: False
+                    disabled: True
+                    pos_hint: {'center_x': .5, 'center_y': .5}
+                    width: dp(40)
+                    on_release: if self.active == True : root.parent.current = "graph screen"
+        MDGridLayout:
+            cols: 2
+            adaptive_height:True
+            padding: '20dp', '10dp'
+            spacing: "30dp"
+            MDTextFieldRound:
+                id: _out_folder
+                required: True
+                icon_left: "folder"
+                hint_text: "Select Output Folder"
+                normal_color: app.theme_cls.accent_color
+                font_size: "20sp"
+                multiline: False
+                readonly: True
+                on_text: root.validate_folder_type(self)
+            MDFillRoundFlatButton:
+                icon: "folder"
+                text: 'Select'
+                font_size: "15sp"
+                on_release: root.file_manager_open('folder')
+        MDBoxLayout:
+            padding: '20dp', '10dp'
+            spacing: "10dp"
+            orientation:'vertical'
+            MDBoxLayout:
+                spacing: dp(50)
+                Widget:
+                MDRaisedButton:
+                    id: _analyze_btn
+                    text: "Analyze"
+                    disabled: True if _out_folder.text == "" or _pm_file.text == "" else False 
+                    # md_bg_color: 0, 0, 1, 1
+                    font_size: dp(20)
+                    # pos_hint: {"center_x": .5, "center_y": .5}
+                    on_release: 
+                        root.analyze_callback(self)
+                        root.enable_cancel_btn()
+                MDRaisedButton:
+                    id: _cancel_btn
+                    disabled: True
+                    text: "Cancel"
+                    font_size: dp(20)
+                    on_release: root.cancel_job()
+            MDProgressBar:
+                id: _progress
+                type: "indeterminate"
+            MDLabel:
+                id: _message
+                text: "Message"
+                font_size: "20sp"
+                theme_text_color: "Custom"
+                text_color: 0, 0, 1, 1
+                halign: 'center'
+                valign: 'middle'
+            MDCard:
+                orientation: "vertical"
+                padding: "4dp"
+                size_hint_y: None
+                height: dp(100)
+                radius: [15]
+                spacing: dp(5)
+                MDLabel:
+                    text: "Save Congestion Result file(.xlsx)"
+                    adaptive_height: True
+
+                MDSeparator:
+                    height: "1dp"
+                MDRaisedButton:
+                    id: _save_btn
+                    disabled: True if not root.completion_status else False
+                    icon: 'file-excel'
+                    text: "Save"
+                    on_release: root.save_out_file(self)
+                    pos_hint: {"center_x": .5}
+            MDCard:
+                orientation: "vertical"
+                padding: "4dp"
+                size_hint_y: None
+                height: dp(100)
+                radius: [15]
+                spacing: dp(5)
+
+                MDLabel:
+                    text: "Open Graph Folder"
+                    adaptive_height: True
+
+                MDSeparator:
+                    height: "1dp"
+
+                MDFillRoundFlatIconButton:
+                    icon: 'folder'
+                    text: "Open"
+                    on_release: root.open_out_folder()
+                    pos_hint: {"center_x": .5}
+
+<GraphingScreen>:
+    status: _status
+    graph_layout:_graph_layout
+    MDBoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, 1
+        spacing: dp(10)
+        padding: dp(25)
+        MDLabel:
+            id: _status
+            text: "Message"
+            font_size: "20sp"
+            theme_text_color: "Custom"
+            text_color: 0, 0, 1, 1
+            halign: 'center'
+            valign: 'middle'
+        MDBoxLayout:
+            id: _graph_layout
+            padding: dp(15)
+            size_hint_y: None
+            height: .7*root.height
+            md_bg_color: gch("#f0f7f2")
+            # elevation: 18
+        MDBoxLayout:
+            spacing: dp(50)
+            Widget:
+            MDFillRoundFlatButton:
+                text: "NEXT"
+                on_press: app.root.ids['maincontainer'].main_calculation()
+                
+            MDFillRoundFlatButton:
+                text: "Close"
+                on_release: 
+                    root.parent.current = "pm_analyzer root screen"
+                    app.root.ids['maincontainer'].set_switch_status()
+                    app.root.ids['maincontainer'].schedule_main_calc()
+
+        # Widget:
