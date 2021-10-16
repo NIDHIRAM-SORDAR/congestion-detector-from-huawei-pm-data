@@ -183,7 +183,9 @@ class MainContainer(MDScreen):
             self.message.theme_text_color = "Error"
             self.message.text = str(e)
             return
-        temp_file = "pm_clean.csv"
+        # change temp pm file name because of unknown permission error
+        # not sure why it's raised yet
+        temp_file = "temp_pm_file.csv"
         self.temp_clean_file_path = self.out_folder_path/temp_file
         self.file_read_event = Clock.schedule_interval(
             lambda dt: self.file_read_callback(), 0)
@@ -289,7 +291,8 @@ class MainContainer(MDScreen):
         self.switch.active = False
 
     def file_read_callback(self):
-        with open(self.temp_clean_file_path, "a") as temp_file_obj:
+        # append and read options added for bug Permission denied error
+        with open(self.temp_clean_file_path, "a+") as temp_file_obj:
             try:
                 line = next(self.file_generator)
                 temp_file_obj.write(line)
