@@ -230,8 +230,9 @@ class MainContainer(MDScreen):
             avg_consumption = data_as_time_index['inbound_peak_rate'].mean()
             min_consumption = data_as_time_index['inbound_peak_rate'].min()
             # Height parameter is included for peaks function
+            # discarded prominence=1 parameter
             peaks, _ = find_peaks(
-                data_as_time_index['inbound_peak_rate'].values, prominence=1, height=(
+                data_as_time_index['inbound_peak_rate'].values, height=(
                     max_consumption-12, max_consumption))
             data_as_time_index['max'] = False
             data_as_time_index.loc[data_as_time_index.iloc[peaks].index, 'max'] = True
