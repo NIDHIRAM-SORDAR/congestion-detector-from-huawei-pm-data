@@ -13,6 +13,7 @@ from matplotlib.ticker import StrMethodFormatter
 
 
 def parse_raw_file(input_file):
+    # This a function for parsing file
     with open(input_file, "r", encoding="utf-8") as read_file:
         flag = True
         token = '"Resource Name"'
@@ -114,9 +115,10 @@ def plotting(data_as_time_index, site, median_of_peaks, peaks_consumption, out_f
     plt.ylabel("Inbound Peak Rate")
     sns.lineplot(
         data=data_as_time_index['inbound_peak_rate'], color='blue', lw=1)
-    sns.lineplot(data=median_of_peaks, lw=1,
+    # As median_of_peaks is now df have to select column
+    sns.lineplot(data=median_of_peaks['inbound_peak_rate'], lw=1,
                  color='red', marker="v", linestyle='--')
-    sns.scatterplot(data=peaks_consumption, lw=10,
+    sns.scatterplot(data=peaks_consumption['inbound_peak_rate'], lw=10,
                     color='green', marker="o")
     sns.despine()
 
