@@ -140,7 +140,7 @@ class MainContainer(MDScreen):
     def set_error_message(self):
         try:
             temp_value = float(self.std_value_input.text.strip())
-            if temp_value < 1 or temp_value > 2:
+            if temp_value < 1 or temp_value > 3:
                 self.std_value_input.error = True
             else:
                 self.std_value = temp_value
