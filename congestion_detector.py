@@ -14,6 +14,7 @@ from kivymd.uix.filemanager import MDFileManager
 from pathlib import Path
 import numpy as np
 import pandas as pd
+from scipy import stats
 from scipy.signal import find_peaks
 from utils import (prepare_dataframe, plotting,
                    parse_raw_file, replace_ext, silentremove)
@@ -230,19 +231,32 @@ class MainContainer(MDScreen):
                 data_as_time_index['inbound_peak_rate'].values, prominence=1)
             data_as_time_index['max'] = False
             data_as_time_index.loc[data_as_time_index.iloc[peaks].index, 'max'] = True
-            peaks_consumption = data_as_time_index[data_as_time_index['max']
-                                                   ]['inbound_peak_rate']
-            median_of_peaks = data_as_time_index[data_as_time_index['max']]['inbound_peak_rate'].groupby(
-                pd.Grouper(level=0, axis=0, freq="D")).median()
-            median_of_peaks_list = median_of_peaks.tolist()
+            # Convert peaks_consumption series to df
+            peaks_consumption = data_as_time_index[data_as_time_index['max']].loc[:, [
+                'inbound_peak_rate']]
+            # Convert median_of_peaks series to df
+            median_of_peaks = data_as_time_index[data_as_time_index['max']].loc[:, ['inbound_peak_rate']].groupby(
+                pd.Grouper(level=0, axis=0, freq="D")).median()  # Change mean to median
+            # Drop any column with NaN bcz it will mess with z score
+            median_of_peaks.dropna(inplace=True)
+            # calculate zscore of median peaks
+            zscore_median_peaks = np.abs(stats.zscore(
+                median_of_peaks['inbound_peak_rate']))
+            # drop the median peaks which zcore is greater than 2
+            median_of_peaks = median_of_peaks[zscore_median_peaks <= 2]
+            # as median_of_peaks is now dataframe we have to select series to list
+            median_of_peaks_list = median_of_peaks['inbound_peak_rate'].tolist(
+            )
             median_of_peaks_list.append(max_consumption)
             median_of_peaks_ndarray = np.array(median_of_peaks_list)
-            # z = np.abs(stats.zscore(median_of_peaks_list))
             std = np.std(median_of_peaks_ndarray)
             plt_gen = plotting(data_as_time_index, site, median_of_peaks,
                                peaks_consumption, self.out_folder_path)
             fig, file_path = next(plt_gen)
-            if std <= self.std_value:
+            # take account anomaly site
+            # consumption is too low
+            # avg_consumption taken into consideration
+            if std <= self.std_value and avg_consumption >= 6:
                 result_dict['Site_name'] = site
                 result_dict['STD'] = std
                 result_dict['Max_Consumption'] = max_consumption
@@ -282,6 +296,10 @@ class MainContainer(MDScreen):
             except StopIteration:
                 self.file_parsing_status = True
                 return False
+            # Add finally clause as because of permission error
+            # Need to investigate further
+            finally:
+                temp_file_obj.close()
 
     def schedule_main_calc(self):
         self.main_event = Clock.schedule_interval(
